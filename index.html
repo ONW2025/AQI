@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Draggable City & AQI Boxes with Custom Menu, Fallback & Save Graphic</title>
+  <!-- Include html2canvas library from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    /* Base styles */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Overpass Black", sans-serif;
+      background: #000;
+    }
+    /* Main container is absolutely positioned at the top with no extra vertical offset.
+       Centered horizontally using transform. */
+    .main-container {
+      width: 1920px;
+      height: 1080px;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background: url('background.png') no-repeat center center;
+      background-size: cover;
+    }
+    /* Draggable elements */
+    .draggable {
+      position: absolute;
+      cursor: move;
+    }
+    .draggable:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      top: -30px;
+      left: 0;
+      white-space: nowrap;
+      z-index: 1000;
+    }
+    /* City box styling */
+    .city-box {
+      width: 450px;
+      background: transparent;
+      padding: 0px;
+      box-sizing: border-box;
+      position: relative;
+    }
+    /* City name styling (adjust font size, color, and glow here) */
+    .city-box .city-name {
+      background: transparent;
+      padding: 0px;
+      cursor: pointer;
+      font-size: 3em;
+      color: #FFFFFF;
+      text-shadow: 0 0 8px #000000;
+    }
+    /* Custom city menu (appears on hover) */
+    .city-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background: #fff;
+      border: none;
+      z-index: 500;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .city-box:hover .city-menu {
+      display: block;
+    }
+    .city-option {
+      padding: 0px;
+      cursor: pointer;
+    }
+    .city-option:hover {
+      background: #eee;
+    }
+    /* AQI box styling (adjust font size, color, and glow here) */
+    .aqi-box {
+      width: 250px;
+      height: 88px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+      padding: 10px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #000;
+      text-shadow: 0 0 8px #000;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Main container with background and overlay -->
+  <div class="main-container" id="mainContainer">
+    <!-- Draggable City Boxes with Custom Menu -->
+    <!-- Inline styles represent desired starting positions -->
+    <div class="draggable city-box" data-index="0" data-tooltip="Top: 50px, Left: 50px" style="top:188px; left:200px;">
+      <div class="city-name">Select a city</div>
+      <div class="city-menu"></div>
+    </div>
+    <div class="draggable city-box" data-index="1" data-tooltip="Top: 50px, Left: 350px" style="top:255px; left:200px;">
+      <div class="city-name">Select a city</div>
+      <div class="city-menu"></div>
+    </div>
+    <div class="draggable city-box" data-index="2" data-tooltip="Top: 50px, Left: 650px" style="top:315px; left:200px;">
+      <div class="city-name">Select a city</div>
+      <div class="city-menu"></div>
+    </div>
+    <div class="draggable city-box" data-index="3" data-tooltip="Top: 50px, Left: 950px" style="top:380px; left:200px;">
+      <div class="city-name">Select a city</div>
+      <div class="city-menu"></div>
+    </div>
+    <div class="draggable city-box" data-index="4" data-tooltip="Top: 200px, Left: 50px" style="top:440px; left:200px;">
+      <div class="city-name">Select a city</div>
+      <div class="city-menu"></div>
+    </div>
+    <div class="draggable city-box" data-index="5" data-tooltip="Top: 200px, Left: 350px" style="top:500px; left:200px;">
+      <div class="city-name">Select a city</div>
+      <div class="city-menu"></div>
+    </div>
+    <div class="draggable city-box" data-index="6" data-tooltip="Top: 200px, Left: 650px" style="top:565px; left:200px;">
+      <div class="city-name">Select a city</div>
+      <div class="city-menu"></div>
+    </div>
+    
+    <!-- Draggable AQI Boxes -->
+    <div class="draggable aqi-box" data-index="0" data-tooltip="Top: 50px, Left: 1200px" style="top:167px; left:778px;">AQI: N/A</div>
+    <div class="draggable aqi-box" data-index="1" data-tooltip="Top: 50px, Left: 1450px" style="top:295px; left:778px;">AQI: N/A</div>
+    <div class="draggable aqi-box" data-index="2" data-tooltip="Top: 50px, Left: 1700px" style="top:415px; left:778px;">AQI: N/A</div>
+    <div class="draggable aqi-box" data-index="3" data-tooltip="Top: 200px, Left: 1200px" style="top:544px; left:778px;">AQI: N/A</div>
+    <div class="draggable aqi-box" data-index="4" data-tooltip="Top: 200px, Left: 1450px" style="top:664px; left:778px;">AQI: N/A</div>
+    <div class="draggable aqi-box" data-index="5" data-tooltip="Top: 200px, Left: 1700px" style="top:787px; left:778px;">AQI: N/A</div>
+    <div class="draggable aqi-box" data-index="6" data-tooltip="Top: 350px, Left: 1200px" style="top:913px; left:778px;">AQI: N/A</div>
+  </div>
+
+  <script>
+    // --- 1. API & Global City List Configuration ---
+    const API_KEY = "E4D0F632-DEAF-463A-9AA2-362EE2B6F425"; // Replace with your valid AirNow API key
+    const cities = [
+      { zip: "44308", name: "Akron" },
+      { zip: "44601", name: "Alliance" },
+      { zip: "44001", name: "Amherst" },
+      { zip: "44004", name: "Ashtabula" },
+      { zip: "45701", name: "Athens" },
+      { zip: "44011", name: "Avon" },
+      { zip: "44203", name: "Barberton" },
+      { zip: "44140", name: "Bay Village" },
+      { zip: "45440", name: "Beavercreek" },
+      { zip: "44017", name: "Berea" },
+      { zip: "44212", name: "Brunswick" },
+      { zip: "44820", name: "Bucyrus" },
+      { zip: "44702", name: "Canton" },
+      { zip: "44406", name: "Canfield" },
+      { zip: "45822", name: "Celina" },
+      { zip: "45601", name: "Chillicothe" },
+      { zip: "43113", name: "Circleville" },
+      { zip: "45202", name: "Cincinnati" },
+      { zip: "44101", name: "Cleveland" },
+      { zip: "44118", name: "Cleveland Heights" },
+      { zip: "43215", name: "Columbus" },
+      { zip: "44221", name: "Cuyahoga Falls" },
+      { zip: "43812", name: "Coshocton" },
+      { zip: "45402", name: "Dayton" },
+      { zip: "43015", name: "Delaware" },
+      { zip: "43016", name: "Dublin" },
+      { zip: "44112", name: "East Cleveland" },
+      { zip: "43920", name: "East Liverpool" },
+      { zip: "44035", name: "Elyria" },
+      { zip: "44123", name: "Euclid" },
+      { zip: "44824", name: "Fairfield" },
+      { zip: "45324", name: "Fairborn" },
+      { zip: "44333", name: "Fairlawn" },
+      { zip: "45840", name: "Findlay" },
+      { zip: "43420", name: "Fremont" },
+      { zip: "44125", name: "Garfield Heights" },
+      { zip: "43230", name: "Gahanna" },
+      { zip: "44833", name: "Galion" },
+      { zip: "43123", name: "Grove City" },
+      { zip: "45011", name: "Hamilton" },
+      { zip: "43026", name: "Hilliard" },
+      { zip: "45424", name: "Huber Heights" },
+      { zip: "44131", name: "Independence" },
+      { zip: "45638", name: "Ironton" },
+      { zip: "45429", name: "Kettering" },
+      { zip: "44240", name: "Kent" },
+      { zip: "43130", name: "Lancaster" },
+      { zip: "45801", name: "Lima" },
+      { zip: "44052", name: "Lorain" },
+      { zip: "44901", name: "Mansfield" },
+      { zip: "43302", name: "Marion" },
+      { zip: "45750", name: "Marietta" },
+      { zip: "43040", name: "Marysville" },
+      { zip: "44646", name: "Massillon" },
+      { zip: "45040", name: "Mason" },
+      { zip: "44256", name: "Medina" },
+      { zip: "44137", name: "Maple Heights" },
+      { zip: "44124", name: "Mayfield Heights" },
+      { zip: "44060", name: "Mentor" },
+      { zip: "45044", name: "Middletown" },
+      { zip: "43055", name: "Newark" },
+      { zip: "43054", name: "New Albany" },
+      { zip: "44851", name: "New London" },
+      { zip: "44720", name: "North Canton" },
+      { zip: "44070", name: "North Olmsted" },
+      { zip: "44039", name: "North Ridgeville" },
+      { zip: "44133", name: "North Royalton" },
+      { zip: "45056", name: "Oxford" },
+      { zip: "44129", name: "Parma" },
+      { zip: "44124", name: "Pepper Pike" },
+      { zip: "43147", name: "Pickerington" },
+      { zip: "45356", name: "Piqua" },
+      { zip: "43452", name: "Port Clinton" },
+      { zip: "43068", name: "Reynoldsburg" },
+      { zip: "44116", name: "Rocky River" },
+      { zip: "44870", name: "Sandusky" },
+      { zip: "44460", name: "Salem" },
+      { zip: "45365", name: "Sidney" },
+      { zip: "44120", name: "Shaker Heights" },
+      { zip: "44139", name: "Solon" },
+      { zip: "45502", name: "Springfield" },
+      { zip: "44136", name: "Strongsville" },
+      { zip: "45426", name: "Trotwood" },
+      { zip: "44278", name: "Tallmadge" },
+      { zip: "44883", name: "Tiffin" },
+      { zip: "43604", name: "Toledo" },
+      { zip: "45373", name: "Troy" },
+      { zip: "45390", name: "Union City" },
+      { zip: "43078", name: "Urbana" },
+      { zip: "44483", name: "Warren" },
+      { zip: "43160", name: "Washington C.H." },
+      { zip: "43081", name: "Westerville" },
+      { zip: "44145", name: "Westlake" },
+      { zip: "44094", name: "Willoughby" },
+      { zip: "44691", name: "Wooster" },
+      { zip: "45385", name: "Xenia" },
+      { zip: "44503", name: "Youngstown" },
+      { zip: "43701", name: "Zanesville" }
+    ];
+
+    // 2. Populate Custom City Menus
+    document.querySelectorAll('.city-box').forEach((box, index) => {
+      const menu = box.querySelector('.city-menu');
+      menu.innerHTML = "";
+      cities.forEach(city => {
+        const option = document.createElement("div");
+        option.classList.add("city-option");
+        option.textContent = city.name;
+        option.dataset.zip = city.zip;
+        option.addEventListener("click", function(e) {
+          box.querySelector('.city-name').textContent = city.name;
+          const aqiBox = document.querySelector(`.aqi-box[data-index="${index}"]`);
+          if (aqiBox) {
+            fetchAQI(city.zip, aqiBox);
+          }
+          e.stopPropagation();
+        });
+        menu.appendChild(option);
+      });
+    });
+
+    // 3. Fetch AQI Forecast Function with Fallback for Closest Reading
+    function getAQIColor(aqi) {
+      if (aqi <= 50) return "#00e400";
+      else if (aqi <= 100) return "#ffff00";
+      else if (aqi <= 150) return "#ff7e00";
+      else if (aqi <= 200) return "#ff0000";
+      else if (aqi <= 300) return "#8f3f97";
+      else return "#7e0023";
+    }
+    // Recursively increase search radius if no data is found, up to 100 miles.
+    function fetchAQI(zip, aqiBox, distance = 25) {
+      if (!zip) {
+        aqiBox.textContent = "AQI: N/A";
+        aqiBox.style.backgroundColor = "#fff";
+        return;
+      }
+      console.log(`Fetching AQI for zip ${zip} with distance ${distance}`);
+      const url = `https://www.airnowapi.org/aq/forecast/zipCode/?format=application/json&zipCode=${zip}&distance=${distance}&API_KEY=${API_KEY}`;
+      aqiBox.textContent = "Loading...";
+      fetch(url)
+        .then(response => {
+          if (!response.ok) throw new Error("Network response was not ok");
+          return response.json();
+        })
+        .then(data => {
+          if (data && data.length > 0) {
+            const aqi = data[0].AQI;
+            aqiBox.textContent = "AQI: " + aqi;
+            aqiBox.style.backgroundColor = getAQIColor(aqi);
+          } else {
+            if (distance < 100) {
+              fetchAQI(zip, aqiBox, distance + 25);
+            } else {
+              aqiBox.textContent = "No data available";
+              aqiBox.style.backgroundColor = "#fff";
+            }
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching data:", error);
+          aqiBox.textContent = "Error fetching data";
+          aqiBox.style.backgroundColor = "#fff";
+        });
+    }
+
+    // 4. Enable AQI Override via Double-Click
+    document.querySelectorAll('.aqi-box').forEach(box => {
+      box.addEventListener("dblclick", function(e) {
+        e.stopPropagation();
+        let currentAQI = box.textContent.replace("AQI: ", "");
+        let newVal = prompt("Enter new AQI value:", currentAQI);
+        if (newVal !== null && newVal.trim() !== "") {
+          let aqi = parseInt(newVal.trim(), 10);
+          if (!isNaN(aqi)) {
+            box.textContent = "AQI: " + aqi;
+            box.style.backgroundColor = getAQIColor(aqi);
+          } else {
+            alert("Please enter a valid number.");
+          }
+        }
+      });
+    });
+
+    // 5. Drag & Drop Functionality Using Baseline Delta Method (No extra offset)
+    let currentDrag = null;
+    document.querySelectorAll('.draggable').forEach(elem => {
+      elem.addEventListener('mousedown', function(e) {
+        if (e.target.classList.contains("city-option")) return;
+        currentDrag = elem;
+        currentDrag.startLeft = parseFloat(elem.style.left) || 0;
+        currentDrag.startTop  = parseFloat(elem.style.top) || 0;
+        currentDrag.startX    = e.pageX;
+        currentDrag.startY    = e.pageY;
+        e.preventDefault();
+      });
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (currentDrag) {
+        let deltaX = e.pageX - currentDrag.startX;
+        let deltaY = e.pageY - currentDrag.startY;
+        currentDrag.style.left = (currentDrag.startLeft + deltaX) + 'px';
+        currentDrag.style.top  = (currentDrag.startTop + deltaY) + 'px';
+      }
+    });
+    document.addEventListener('mouseup', function() {
+      if (currentDrag) {
+        let left = currentDrag.offsetLeft;
+        let top = currentDrag.offsetTop;
+        currentDrag.setAttribute("data-tooltip", `Top: ${top}px, Left: ${left}px`);
+      }
+      currentDrag = null;
+    });
+
+    // 6. Right-Click to Save Graphic
+    // Prevent default context menu on main container and save graphic as PNG
+    document.getElementById("mainContainer").addEventListener("contextmenu", function(e) {
+      e.preventDefault();
+      html2canvas(document.getElementById("mainContainer")).then(function(canvas) {
+        let link = document.createElement("a");
+        link.download = "graphic.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      });
+    });
+  </script>
+</body>
+</html>
