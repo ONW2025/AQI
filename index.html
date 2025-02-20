@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Draggable City & AQI Boxes with Custom Menu, Fallback & Save Graphic</title>
-  <!-- Include html2canvas library from CDN -->
+  <title>Draggable City & AQI Boxes with Custom Menu, Fallback & Timestamp</title>
+  <!-- Include html2canvas if you need the right-click save feature -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     /* Base styles */
@@ -24,6 +24,16 @@
       transform: translateX(-50%);
       background: url('background.png') no-repeat center center;
       background-size: cover;
+    }
+    /* Timestamp styling */
+    #timestamp {
+      position: absolute;
+      bottom: 950px;
+      right: 500px;
+      color: #fff;
+      font-size: 1.5em;
+      text-shadow: 0 0 8px #000, 0 0 8px #000, 0 0 8px #000;
+      z-index: 1100;
     }
     /* Draggable elements */
     .draggable {
@@ -46,14 +56,14 @@
     .city-box {
       width: 450px;
       background: transparent;
-      padding: 0px;
+      padding: 0;
       box-sizing: border-box;
       position: relative;
     }
-    /* City name styling (adjust font size, color, and glow here) */
+    /* City name styling */
     .city-box .city-name {
       background: transparent;
-      padding: 0px;
+      padding: 0;
       cursor: pointer;
       font-size: 3em;
       color: #FFFFFF;
@@ -76,13 +86,13 @@
       display: block;
     }
     .city-option {
-      padding: 0px;
+      padding: 0;
       cursor: pointer;
     }
     .city-option:hover {
       background: #eee;
     }
-    /* AQI box styling (adjust font size, color, and glow here) */
+    /* AQI box styling */
     .aqi-box {
       width: 250px;
       height: 88px;
@@ -96,17 +106,16 @@
       justify-content: center;
       font-size: 1.5em;
       font-weight: bold;
-      color: #000;
-      text-shadow: 0 0 8px #000;
+      color: #FFF;
+      text-shadow: 0 0 8px #000, 0 0 8px #000, 0 0 8px #000;
       user-select: none;
     }
   </style>
 </head>
 <body>
-  <!-- Main container with background and overlay -->
+  <!-- Main container with background, overlay, and timestamp -->
   <div class="main-container" id="mainContainer">
     <!-- Draggable City Boxes with Custom Menu -->
-    <!-- Inline styles represent desired starting positions -->
     <div class="draggable city-box" data-index="0" data-tooltip="Top: 50px, Left: 50px" style="top:188px; left:200px;">
       <div class="city-name">Select a city</div>
       <div class="city-menu"></div>
@@ -144,11 +153,14 @@
     <div class="draggable aqi-box" data-index="4" data-tooltip="Top: 200px, Left: 1450px" style="top:664px; left:778px;">AQI: N/A</div>
     <div class="draggable aqi-box" data-index="5" data-tooltip="Top: 200px, Left: 1700px" style="top:787px; left:778px;">AQI: N/A</div>
     <div class="draggable aqi-box" data-index="6" data-tooltip="Top: 350px, Left: 1200px" style="top:913px; left:778px;">AQI: N/A</div>
+    
+    <!-- Timestamp element -->
+    <div id="timestamp"></div>
   </div>
 
   <script>
     // --- 1. API & Global City List Configuration ---
-    const API_KEY = "E4D0F632-DEAF-463A-9AA2-362EE2B6F425"; // Replace with your valid AirNow API key
+    const API_KEY = "YOUR_API_KEY_HERE"; // Replace with your valid AirNow API key
     const cities = [
       { zip: "44308", name: "Akron" },
       { zip: "44601", name: "Alliance" },
@@ -280,7 +292,7 @@
       else if (aqi <= 300) return "#8f3f97";
       else return "#7e0023";
     }
-    // Recursively increase search radius if no data is found, up to 100 miles.
+    // If no data is returned at a given distance, recursively increase distance up to 100 miles.
     function fetchAQI(zip, aqiBox, distance = 25) {
       if (!zip) {
         aqiBox.textContent = "AQI: N/A";
@@ -364,8 +376,7 @@
       currentDrag = null;
     });
 
-    // 6. Right-Click to Save Graphic
-    // Prevent default context menu on main container and save graphic as PNG
+    // 6. Right-Click to Save Graphic using html2canvas
     document.getElementById("mainContainer").addEventListener("contextmenu", function(e) {
       e.preventDefault();
       html2canvas(document.getElementById("mainContainer")).then(function(canvas) {
@@ -375,6 +386,27 @@
         link.click();
       });
     });
+
+    // 7. Timestamp Update
+    function updateTimestamp() {
+      const now = new Date();
+      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      const dayOfWeek = days[now.getDay()];
+      const month = months[now.getMonth()];
+      const dayOfMonth = now.getDate();
+      const year = now.getFullYear();
+      let hours = now.getHours();
+      const minutes = now.getMinutes();
+      const ampm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      const minutesStr = minutes < 10 ? "0" + minutes : minutes;
+      const timestampStr = `${dayOfWeek}, ${month} ${dayOfMonth}, ${year} ${hours}:${minutesStr} ${ampm}`;
+      document.getElementById("timestamp").textContent = timestampStr;
+    }
+    setInterval(updateTimestamp, 1000);
+    updateTimestamp();
   </script>
 </body>
 </html>
